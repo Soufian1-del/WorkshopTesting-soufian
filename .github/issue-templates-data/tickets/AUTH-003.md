@@ -7,7 +7,7 @@ labels: ["ticket", "junit", "mockito", "nested"]
 Se han detectado accesos incorrectos al sistema en situaciones no autorizadas.
 
 **Módulo afectado**
-- `es.fplumara.dam1.auth`
+- `es.fplumara.dam1.workshoptesting.auth`
 
 **Casos reportados**
 - Usuario inexistente accede

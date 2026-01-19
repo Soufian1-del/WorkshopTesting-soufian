@@ -11,7 +11,7 @@ Se están registrando usuarios duplicados por diferencias de formato en el email
 - `"a@b.com"`
 
 **Módulo afectado**
-- `es.fplumara.dam1.users`
+- `es.fplumara.dam1.workshoptesting.users`
 
 **Comportamiento esperado**
 - El sistema debe tratar ambos emails como el mismo

@@ -7,7 +7,7 @@ labels: ["ticket", "mockito", "void", "junit"]
 Cuando el servicio de correo falla, el sistema se comporta de forma inesperada.
 
 **Módulo afectado**
-- `es.fplumara.dam1.users`
+- `es.fplumara.dam1.workshoptesting.users`
 
 **Comportamiento esperado**  
 Define y documenta una regla clara:

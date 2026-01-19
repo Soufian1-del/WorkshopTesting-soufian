@@ -7,7 +7,7 @@ labels: ["ticket", "junit", "mockito", "nested"]
 Usuarios activos a veces acceden con contraseñas incorrectas.
 
 **Módulo afectado**
-- `es.fplumara.dam1.auth`
+- `es.fplumara.dam1.workshoptesting.auth`
 
 **Comportamiento esperado**
 - Solo contraseña correcta permite acceso
