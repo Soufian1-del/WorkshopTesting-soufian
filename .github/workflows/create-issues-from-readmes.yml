@@ -13,25 +13,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Debug - list issue files
+        run: |
+          set -e
+          echo "Listing .github/issue-templates-data:"
+          ls -la .github || true
+          ls -la .github/issue-templates-data || true
+          find .github/issue-templates-data -type f -name "*.md" -maxdepth 3 -print || true
+
       - name: Ensure base labels exist
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -e
-          gh label create ticket --description "Bug ticket / incidencia" --color "d73a4a" --force
-          gh label create lab --description "Practice lab / ejercicio" --color "0075ca" --force
-          gh label create junit --description "JUnit related" --color "1d76db" --force
-          gh label create mockito --description "Mockito related" --color "0e8a16" --force
+          gh label create ticket --description "Bug ticket / incidencia" --color "d73a4a" --force || true
+          gh label create lab --description "Practice lab / ejercicio" --color "0075ca" --force || true
+          gh label create junit --description "JUnit related" --color "1d76db" --force || true
+          gh label create mockito --description "Mockito related" --color "0e8a16" --force || true
 
       - name: Create issues from markdown files
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
+          PYTHONUNBUFFERED: "1"
         run: |
           set -e
 
           python3 - <<'PY'
-          import os, re, json, subprocess
+          import os, re, subprocess
           from pathlib import Path
 
           REPO = os.environ["REPO"]
@@ -40,21 +49,10 @@ jobs:
           def run(cmd):
             r = subprocess.run(cmd, text=True, capture_output=True)
             if r.returncode != 0:
-              raise RuntimeError(f"Command failed: {cmd}\n{r.stderr}")
+              raise RuntimeError(f"Command failed: {cmd}\nSTDERR:\n{r.stderr}\nSTDOUT:\n{r.stdout}")
             return r.stdout.strip()
 
-          def issue_exists(title: str) -> bool:
-            q = f'repo:{REPO} type:issue in:title "{title}"'
-            out = run(["gh","api","-H","Accept: application/vnd.github+json", f"/search/issues?q={q}"])
-            data = json.loads(out)
-            return data.get("total_count", 0) > 0
-
           def parse_frontmatter(md: str):
-            # Espera:
-            # ---
-            # title: "..."
-            # labels: ["a","b"]
-            # ---
             if not md.startswith("---"):
               raise ValueError("Missing frontmatter (--- ... ---)")
 
@@ -79,10 +77,6 @@ jobs:
             return title, labels, body.strip()
 
           def create_issue(title: str, labels, body: str):
-            if issue_exists(title):
-              print(f"SKIP (exists): {title}")
-              return
-
             args = ["gh","api","-H","Accept: application/vnd.github+json",
                     f"/repos/{REPO}/issues",
                     "-f", f"title={title}",
@@ -94,19 +88,19 @@ jobs:
             print(f"CREATED: {title}")
 
           if not BASE.exists():
-            print(f"WARNING: {BASE} does not exist. Nothing to do.")
-            raise SystemExit(0)
+            print(f"ERROR: {BASE} does not exist. Check folder path and commit.")
+            raise SystemExit(1)
 
           files = sorted(BASE.rglob("*.md"))
           if not files:
-            print("No issue files found.")
-            raise SystemExit(0)
+            print("ERROR: No issue files found. Did you commit them?")
+            raise SystemExit(1)
 
           for f in files:
             md = f.read_text(encoding="utf-8")
             title, labels, body = parse_frontmatter(md)
 
-            # Si alguien no pone labels, inferimos por carpeta
+            # Si no hay labels, inferir por carpeta
             if not labels:
               if "tickets" in f.parts:
                 labels = ["ticket"]
